@@ -4,11 +4,9 @@
   top: 20px;
   right: 20px;
   z-index: 10000;
-  width: 50px;
-  height: 50px;
   background: white;
   border: 2px solid #0a66c2;
-  border-radius: 50%;
+  border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   display: flex;
   align-items: center;
@@ -16,6 +14,22 @@
   cursor: pointer;
   transition: all 0.3s ease;
   user-select: none;
+}
+
+/* Single icon mode */
+.linkedin-visibility-overlay.single-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+}
+
+/* Multi-icon mode */
+.linkedin-visibility-overlay.multi-icon {
+  width: auto;
+  height: 50px;
+  border-radius: 25px;
+  padding: 8px 12px;
+  gap: 8px;
 }
 
 .linkedin-visibility-overlay:hover {
@@ -33,6 +47,47 @@
 
 .linkedin-visibility-overlay .status-icon:active {
   transform: scale(0.95);
+}
+
+/* Multi-icon container styles */
+.all-icons-container {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.status-icon-option {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid transparent;
+  user-select: none;
+}
+
+.status-icon-option:hover {
+  transform: scale(1.1);
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.status-icon-option:active {
+  transform: scale(0.95);
+}
+
+.status-icon-option.active {
+  background: rgba(10, 102, 194, 0.1);
+  border: 1px solid #0a66c2;
+  box-shadow: 0 0 8px rgba(10, 102, 194, 0.3);
+}
+
+.status-icon-option.active:hover {
+  background: rgba(10, 102, 194, 0.2);
 }
 
 .linkedin-visibility-overlay .tooltip {
@@ -92,15 +147,29 @@
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
-  .linkedin-visibility-overlay {
+  .linkedin-visibility-overlay.single-icon {
     top: 10px;
     right: 10px;
     width: 40px;
     height: 40px;
   }
   
+  .linkedin-visibility-overlay.multi-icon {
+    top: 10px;
+    right: 10px;
+    height: 40px;
+    padding: 6px 10px;
+    gap: 6px;
+  }
+  
   .linkedin-visibility-overlay .status-icon {
     font-size: 16px;
+  }
+
+  .status-icon-option {
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
   }
   
   .linkedin-visibility-overlay .tooltip {

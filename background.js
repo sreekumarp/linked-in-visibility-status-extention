@@ -16,6 +16,30 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         sendResponse({ success: false, error: error.message });
       });
     return true; // Keep message channel open for async response
+  } else if (request.action === "setVisibilityStatus") {
+    setLinkedInVisibilityStatus(request.targetStatus)
+      .then((result) => sendResponse(result))
+      .catch((error) => {
+        console.error("Set status error:", error);
+        sendResponse({ success: false, error: error.message });
+      });
+    return true; // Keep message channel open for async response
+  } else if (request.action === "getSettings") {
+    getExtensionSettings()
+      .then((settings) => sendResponse({ settings: settings }))
+      .catch((error) => {
+        console.error("Get settings error:", error);
+        sendResponse({ settings: getDefaultSettings() });
+      });
+    return true;
+  } else if (request.action === "saveSettings") {
+    saveExtensionSettings(request.settings)
+      .then(() => sendResponse({ success: true }))
+      .catch((error) => {
+        console.error("Save settings error:", error);
+        sendResponse({ success: false, error: error.message });
+      });
+    return true;
   }
 });
 
@@ -525,5 +549,123 @@ async function extractTokensFromLinkedIn() {
   } catch (error) {
     console.error("Error extracting tokens:", error);
     return { csrfToken: null, pageInstance: null };
+  }
+}
+
+// New function to set specific visibility status (not just toggle)
+async function setLinkedInVisibilityStatus(targetStatus) {
+  try {
+    // Map display names to values
+    const statusMap = {
+      "Your name and headline": "DISCLOSE_FULL",
+      "Private profile characteristics": "DISCLOSE_ANONYMOUS", 
+      "Private mode": "HIDE"
+    };
+
+    const targetValue = statusMap[targetStatus];
+    if (!targetValue) {
+      throw new Error(`Unknown target status: ${targetStatus}`);
+    }
+
+    // Create a hidden tab to manipulate the settings page
+    const tab = await chrome.tabs.create({
+      url: "https://www.linkedin.com/mypreferences/d/profile-viewing-options",
+      active: false, // Hidden tab
+    });
+
+    return new Promise((resolve) => {
+      // Wait for the tab to load, then manipulate it
+      const onUpdated = (tabId, changeInfo, updatedTab) => {
+        if (tabId === tab.id && changeInfo.status === "complete") {
+          chrome.tabs.onUpdated.removeListener(onUpdated);
+
+          // Execute script to click the radio button and submit
+          chrome.scripting.executeScript(
+            {
+              target: { tabId: tab.id },
+              func: toggleRadioButton,
+              args: [targetValue],
+            },
+            (results) => {
+              // Close the hidden tab
+              chrome.tabs.remove(tab.id);
+
+              if (results && results[0] && results[0].result) {
+                const result = results[0].result;
+                if (result.success) {
+                  resolve({
+                    success: true,
+                    newStatus: targetStatus,
+                    message: `Set to: ${targetStatus}`,
+                  });
+                } else {
+                  resolve({
+                    success: false,
+                    error: result.error || "Failed to set status",
+                  });
+                }
+              } else {
+                resolve({
+                  success: false,
+                  error: "Failed to execute set status script",
+                });
+              }
+            }
+          );
+        }
+      };
+
+      chrome.tabs.onUpdated.addListener(onUpdated);
+
+      // Set a timeout in case the page doesn't load
+      setTimeout(() => {
+        chrome.tabs.onUpdated.removeListener(onUpdated);
+        chrome.tabs.remove(tab.id);
+        resolve({
+          success: false,
+          error: "Timeout waiting for LinkedIn page to load",
+        });
+      }, 15000); // 15 second timeout
+    });
+  } catch (error) {
+    console.error("Error setting visibility status:", error);
+    return {
+      success: false,
+      error: error.message || "Failed to set status",
+    };
+  }
+}
+
+// Settings management functions
+function getDefaultSettings() {
+  return {
+    showAllIcons: false, // Default to "Toggle one by one" mode
+    iconMode: "toggle" // "toggle" or "all"
+  };
+}
+
+async function getExtensionSettings() {
+  try {
+    const result = await chrome.storage.sync.get(['linkedinVisibilitySettings']);
+    if (result.linkedinVisibilitySettings) {
+      // Merge with defaults in case new settings are added
+      return { ...getDefaultSettings(), ...result.linkedinVisibilitySettings };
+    }
+    return getDefaultSettings();
+  } catch (error) {
+    console.error('Error getting settings:', error);
+    return getDefaultSettings();
+  }
+}
+
+async function saveExtensionSettings(settings) {
+  try {
+    await chrome.storage.sync.set({
+      linkedinVisibilitySettings: settings
+    });
+    return true;
+  } catch (error) {
+    console.error('Error saving settings:', error);
+    throw error;
   }
 }
