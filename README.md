@@ -15,17 +15,20 @@ A Chrome browser extension that displays your LinkedIn profile visibility status
 
 ## Installation
 
-### Option 1: Load as Unpacked Extension (Development)
+### Option 1: Install Locally (Recommended for now)
 
-1. **Download or Clone** this repository to your local machine
-2. **Open Chrome** and navigate to `chrome://extensions/`
-3. **Enable Developer Mode** by clicking the toggle in the top-right corner
-4. **Click "Load unpacked"** and select the extension folder
-5. **Create Icons** (optional): Open `icons/create-icons.html` in your browser and download the generated icon files to the `icons/` folder
-6. **Refresh** the extensions page to ensure the extension loads properly
+#### Step 1: Prepare the Extension
+1. **Download** this repository as ZIP or clone it to your local machine
+2. **Create Extension Icons** (required):
+   - Open `icons/create-icons.html` in your browser
+   - Click the download buttons to save `icon16.png`, `icon48.png`, and `icon128.png` to the `icons/` folder
+   - All three icon files must be present for the extension to work
 
-### Option 2: Chrome Web Store (Future)
-*This extension is not yet available on the Chrome Web Store*
+#### Step 2: Verify Installation
+1. **Visit LinkedIn.com** - you should see the overlay icon in the top-right
+2. **Click the extension icon** in Chrome toolbar to access Options
+3. **Choose display mode**: "Toggle one by one" or "Show all icons"
+
 
 ## How It Works
 
@@ -91,6 +94,19 @@ To modify or enhance the extension:
 2. **Reload Extension**: Go to `chrome://extensions/` and click the refresh icon
 3. **Test Changes**: Navigate to LinkedIn and test functionality
 4. **Debug**: Use Chrome DevTools to debug content and background scripts
+
+
+## Package for Manual Installation
+
+To create a `.crx` file for sharing:
+
+1. **Go to** `chrome://extensions/`
+2. **Enable Developer Mode**
+3. **Click "Pack extension"**
+4. **Select extension folder**
+5. **Generate .crx file** for distribution
+
+**Note**: Users will get security warnings when installing .crx files manually.
 
 ## Known Limitations
 

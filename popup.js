@@ -19,16 +19,6 @@ document.addEventListener('DOMContentLoaded', function() {
   const applySettingsBtn = document.getElementById('applySettingsBtn');
   const linkedinSettingsBtn = document.getElementById('linkedinSettingsBtn');
 
-  // Debug: Check if elements exist
-  console.log('Elements found:', {
-    statusIcon: !!statusIcon,
-    statusText: !!statusText,
-    refreshBtn: !!refreshBtn,
-    optionsBtn: !!optionsBtn,
-    statusContainer: !!statusContainer,
-    settingsContainer: !!settingsContainer
-  });
-
   // Load current status and settings on popup open
   loadVisibilityStatus();
   loadSettings();
