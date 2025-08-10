@@ -13,6 +13,12 @@ A Chrome browser extension that displays your LinkedIn profile visibility status
 - **Real-time Status**: Fetches current status from LinkedIn's preferences API
 - **Extension Popup**: Click the extension icon for detailed information and quick access to settings
 
+<img width="281" height="143" alt="image" src="https://github.com/user-attachments/assets/5d463332-5cf8-4441-90cc-fe72306f9613" />
+
+## Settings
+
+<img width="415" height="446" alt="image" src="https://github.com/user-attachments/assets/8ae7b21c-d5d3-4ee3-87d3-13c4438e324b" />
+
 ## Installation
 
 ### Option 1: Install Locally (Recommended for now)
