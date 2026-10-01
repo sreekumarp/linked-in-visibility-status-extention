@@ -72,6 +72,17 @@ async function fetchLinkedInVisibilityStatus() {
   }
 }
 
+// Decode named and numeric HTML entities (e.g. &quot; &#61; &#92; &#x27;)
+function decodeHtmlEntities(str) {
+  return str
+    .replace(/&#(\d+);/g, (_, dec) => String.fromCharCode(parseInt(dec, 10)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
+    .replace(/&quot;/g, '"')
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&amp;/g, "&");
+}
+
 function parseVisibilityStatus(html) {
   try {
     // Look for JSON data in the HTML response
@@ -79,39 +90,24 @@ function parseVisibilityStatus(html) {
 
     if (jsonDataMatch) {
       try {
-        // Decode HTML entities and parse JSON
-        const jsonString = jsonDataMatch
-          .find((a) => a.includes("DISCLOSE_ANONYMOUS"))
-          .replace(/&quot;/g, '"')
-          .replace(/&#39;/g, "'")
-          .replace(/&lt;/g, "<")
-          .replace(/&gt;/g, ">");
+        const codeBlock = jsonDataMatch.find((a) =>
+          a.includes("discloseAsProfileViewer")
+        );
+        const match = codeBlock && codeBlock.match(/<code[^>]*>([\s\S]*?)<\/code>/);
+        const inner = match ? decodeHtmlEntities(match[1]).trim() : null;
+        const data = inner ? JSON.parse(inner) : null;
 
-        debugger;
+        // Find the profile viewer setting entity in the included array
+        const setting = data && Array.isArray(data.included)
+          ? data.included.find((item) => item.key === "discloseAsProfileViewer")
+          : null;
 
-        const match = jsonString.match(/<code[^>]*>([\s\S]*?)<\/code>/);
-        const inner = match ? match[1] : null;
-        const data = JSON.parse(inner);
-
-        // Navigate to the settings data
-        if (
-          data.included &&
-          data.included[0] &&
-          data.included[0].settingDisplayValues
-        ) {
-          const settings = data.included[0].settingDisplayValues;
-
-          // Find the selected setting
-          for (let setting of settings) {
-            if (setting.selected === true) {
-              return setting.settingDisplayValue;
-            }
-          }
-        }
-
-        // Alternative: check the current value in the setting entity
-        if (data.included && data.included[0] && data.included[0].value) {
-          const currentValue = data.included[0].value;
+        if (setting) {
+          // Prefer the selected radio option, fall back to the entity's value
+          const selectedOption = Array.isArray(setting.settingDisplayValues)
+            ? setting.settingDisplayValues.find((opt) => opt.selected === true)
+            : null;
+          const currentValue = selectedOption ? selectedOption.value : setting.value;
 
           switch (currentValue) {
             case "DISCLOSE_FULL":
@@ -125,7 +121,7 @@ function parseVisibilityStatus(html) {
           }
         }
       } catch (jsonError) {
-        //console.error('Error parsing JSON data:', jsonError);
+        console.error("Error parsing JSON data:", jsonError);
       }
     }
 
